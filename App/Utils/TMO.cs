@@ -5,145 +5,117 @@ using App.Figures;
 
 namespace App.Utils {
 
+    /// <summary>
+    /// Класс выполнения ТМО
+    /// </summary>
     public class Tmo {
 
-        public static Polygon Exe(Polygon pgnA, Polygon pgnB, int tmo, int width, int height, Graphics g) {
-            var setQ = new int[2];
-            switch (tmo) {
-                case 1:
-                    setQ[0] = 1;
-                    setQ[1] = 3;
-                    break;
-                case 2:
-                    setQ[0] = 3;
-                    setQ[1] = 3;
-                    break;
-                case 3:
-                    setQ[0] = 1;
-                    setQ[1] = 2;
-                    break;
-                case 4:
-                    setQ[0] = 2;
-                    setQ[1] = 2;
-                    break;
-                case 5:
-                    setQ[0] = 1;
-                    setQ[1] = 1;
-                    break;
-                default:
-                    throw new ArgumentException($"Неожиданное значение ТМО: {tmo}");
-            }
+        /// <summary>
+        /// Выполнение ТМО
+        /// </summary>
+        /// <param name="pgnA">Полигон A</param>
+        /// <param name="pgnB">Полигон B</param>
+        /// <param name="tmo">Индекс ТМО</param>
+        /// <param name="width">Ширина полотна</param>
+        /// <param name="height">Высота полотна</param>
+        /// <returns>Результат ТМО</returns>
+        public static Tuple<List<Point>, List<Point>> Exe(Polygon pgnA, Polygon pgnB, int tmo) {
+            var setQ = CreateTmoQ(tmo);
 
             var xal = new List<int>();
             var xar = new List<int>();
             var xbl = new List<int>();
             var xbr = new List<int>();
 
-            var pgn = new Polygon(Color.Red);
             var ll = new List<Point>();
             var lr = new List<Point>();
 
-            for (var y = 0; y < height; y++) {
+            for (var y = 0; y < UiUtils.CanvasHeight; y++) {
                 Bound(pgnA.Vertex, xal, xar, y);
                 Bound(pgnB.Vertex, xbl, xbr, y);
 
-                var Mx = new int[1000];
-                var MdQ = new int[1000];
+                var totalM = xal.Count + xar.Count + xbl.Count + xbr.Count;
+                if (totalM == 0) continue;
 
-                for (int i = 0; i < xal.Count; i++) {
-                    Mx[i] = xal[i];
-                    MdQ[i] = 2;
+                var mx = new List<int>(totalM);
+                var mdQ = new List<int>(totalM);
+
+                foreach (var x in xal) {
+                    mx.Add(x);
+                    mdQ.Add(2);
                 }
 
-                var nM = xal.Count;
-
-                for (int i = 0; i < xar.Count; i++) {
-                    Mx[nM + i] = xar[i];
-                    MdQ[nM + i] = -2;
+                foreach (var x in xar) {
+                    mx.Add(x);
+                    mdQ.Add(-2);
                 }
 
-                nM = nM + xar.Count;
-
-                for (int i = 0; i < xbl.Count; i++) {
-                    Mx[nM + i] = xbl[i];
-                    MdQ[nM + i] = 1;
+                foreach (var x in xbl) {
+                    mx.Add(x);
+                    mdQ.Add(1);
                 }
 
-                nM = nM + xbl.Count;
-
-                for (int i = 0; i < xbr.Count; i++) {
-                    Mx[nM + i] = xbr[i];
-                    MdQ[nM + i] = -1;
+                foreach (var x in xbr) {
+                    mx.Add(x);
+                    mdQ.Add(-1);
                 }
 
-                nM = nM + xbr.Count;
+                for (var i = 0; i < totalM; i++) {
+                    for (var j = i + 1; j < totalM; j++) {
+                        if (mx[i] <= mx[j]) continue;
 
-                for (var i = 0; i < Mx.Length; i++) {
-                    for (var j = i + 1; j < Mx.Length; j++) {
-                        if (Mx[i] <= Mx[j]) continue;
+                        var temp1 = mx[i];
+                        mx[i] = mx[j];
+                        mx[j] = temp1;
 
-                        var temp1 = Mx[i];
-                        Mx[i] = Mx[j];
-                        Mx[j] = temp1;
-
-                        temp1 = MdQ[i];
-                        MdQ[i] = MdQ[j];
-                        MdQ[j] = temp1;
+                        temp1 = mdQ[i];
+                        mdQ[i] = mdQ[j];
+                        mdQ[j] = temp1;
                     }
                 }
 
-                int k = 0;
-                int m = 0;
-                int Q = 0;
-                int x;
-                int Qnew;
-                int Xemin = 0;
-                int Xemax = width;
+                var q = 0;
+                var xEmin = 0;
+                var xEmax = UiUtils.CanvasWidth;
 
-                int[] Xrl = new int[1000];
-                int[] Xrr = new int[1000];
+                var xrl = new List<int>();
+                var xrr = new List<int>();
 
-                if ((Mx[0] >= Xemin) && (MdQ[0] < 0)) {
-                    Xrl[0] = Xemin;
-                    Q = -MdQ[0];
-                    k = 1;
+                if (mx[0] >= xEmin && mdQ[0] < 0) {
+                    xrl.Add(xEmin);
+                    q = -mdQ[0];
                 }
 
-                for (var i = 0; i < nM; i++) {
-                    x = Mx[i];
-                    Qnew = Q + MdQ[i];
+                for (var i = 0; i < totalM; i++) {
+                    var x = mx[i];
+                    var qNew = q + mdQ[i];
 
-                    if ((Q < setQ[0] || Q > setQ[1]) && Qnew >= setQ[0] && Qnew <= setQ[1]) {
-                        Xrl[k] = x;
-                        k = k + 1;
+                    if ((q < setQ[0] || q > setQ[1]) && qNew >= setQ[0] && qNew <= setQ[1]) {
+                        xrl.Add(x);
                     }
 
-                    if (Q >= setQ[0] && Q <= setQ[1] && (Qnew < setQ[0] || Qnew > setQ[1])) {
-                        Xrr[m] = x;
-                        m = m + 1;
+                    if (q >= setQ[0] && q <= setQ[1] && (qNew < setQ[0] || qNew > setQ[1])) {
+                        xrr.Add(x);
                     }
 
-                    Q = Qnew;
+                    q = qNew;
                 }
 
-                if (Q >= setQ[0] && Q <= setQ[1]) {
-                    Xrr[m] = Xemax;
+                if (q >= setQ[0] && q <= setQ[1]) {
+                    xrr.Add(xEmax);
                 }
 
-                for (var i = 0; i < nM; i++) {
-                    g.DrawLine(new Pen(Color.Red), Xrl[i], y, Xrr[i], y);
-                    //ll.Add(new Point(Xrl[i], y));
-                    //lr.Add(new Point(Xrr[i], y));
+                if (xrl.Count != xrr.Count) {
+                    throw new InvalidOperationException($"Размеры правой и левой границе не совпадают. xrr: {xrl.Count}, xrl: {xrr.Count}");
+                }
+
+                for (var i = 0; i < xrl.Count; i++) {
+                    ll.Add(new Point(xrl[i], y));
+                    lr.Add(new Point(xrr[i], y));
                 }
             }
 
-            //ll.ForEach(pgn.Add);
-            //lr.Reverse();
-            //lr.ForEach(pgn.Add);
-
-            //pgn.Draw(g);
-
-            return pgn;
+            return new Tuple<List<Point>, List<Point>>(ll, lr);
         }
 
         /// <summary>
@@ -157,45 +129,62 @@ namespace App.Utils {
             xl.Clear();
             xr.Clear();
 
+            var xb = new List<int>();
             for (var i = 0; i < points.Count; i++) {
                 var k = i == points.Count - 1 ? 0 : i + 1;
 
-                if (points[i].Y < y && points[k].Y >= y || points[i].Y >= y && points[k].Y < y) {
-                    var p1 = new PointF(points[i].X, points[i].Y);
-                    var p2 = new PointF(points[k].X, points[k].Y);
-                    var p3 = new PointF(-1000, y);
-                    var p4 = new PointF(1000, y);
+                var currPoint = points[i];
+                var nextPoint = points[k];
 
-                    var p5 = Cross(p1, p2, p3, p4);
-
-                    if (p2.Y * p5.Y - p1.Y * p5.Y > 0) {
-                        xr.Add((int) p5.X);
-                    } else {
-                        xl.Add((int) p5.X);
-                    }
+                if (currPoint.Y < y && nextPoint.Y >= y || currPoint.Y >= y && nextPoint.Y < y) {
+                    xb.Add((int) Cross(currPoint, nextPoint, y));
                 }
             }
 
-            xl.Sort();
-            xr.Sort();
+            xb.Sort();
+            for (var i = 0; i < xb.Count; i += 2) {
+                xl.Add(xb[i]);
+                xr.Add(xb[i + 1]);
+            }
         }
 
-        private static PointF Cross(PointF p1, PointF p2, PointF p3, PointF p4) {
-            if (p3.X == p4.X) {
-                var y = p1.Y + ((p2.Y - p1.Y) * (p3.X - p1.X)) / (p2.X - p1.X);
-                if (y > Math.Max(p3.Y, p4.Y) || y < Math.Min(p3.Y, p4.Y)
-                                             || y > Math.Max(p1.Y, p2.Y) || y < Math.Min(p1.Y, p2.Y))
-                    return new Point(0, 0);
-
-                return new PointF(p3.X, y);
+        /// <summary>
+        /// Определение абсциссы пересечения горизонтальной прямой Y
+        /// и прямой образованной точками P1 и P2
+        /// </summary>
+        /// <param name="p1"></param>
+        /// <param name="p2"></param>
+        /// <param name="y"></param>
+        /// <returns>абсцисса</returns>
+        private static float Cross(PointF p1, PointF p2, float y) {
+            if (p1.X == p2.X) {
+                return p1.X;
             }
 
-            var x = p1.X + ((p2.X - p1.X) * (p3.Y - p1.Y)) / (p2.Y - p1.Y);
-            if (x > Math.Max(p3.X, p4.X) || x < Math.Min(p3.X, p4.X)
-                                         || x > Math.Max(p1.X, p2.X) || x < Math.Min(p1.X, p2.X))
-                return new Point(0, 0);
+            if (p1.Y == y) {
+                return p1.X;
+            }
 
-            return new PointF(x, p3.Y);
+            if (p2.Y == y) {
+                return p2.X;
+            }
+
+            var k = (p1.Y - p2.Y) / (p1.X - p2.X);
+            var b = p1.Y - k * p1.X;
+
+            return (y - b) / k;
+        }
+
+        private static int[] CreateTmoQ(int tmo) {
+            switch (tmo) {
+                case 1: return new[] {1, 3};
+                case 2: return new[] {3, 3};
+                case 3: return new[] {1, 2};
+                case 4: return new[] {2, 2};
+                case 5: return new[] {1, 1};
+                default:
+                    throw new ArgumentException($"Неожиданное значение ТМО: {tmo}");
+            }
         }
 
     }

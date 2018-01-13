@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace App.Figures {
 
@@ -9,8 +10,15 @@ namespace App.Figures {
     /// </summary>
     public abstract class Figure : Drawable {
 
+        /// <summary>
+        /// Набор точек, описывающих замкнутый контур фигуры
+        /// </summary>
         public List<PointF> Vertex { get; }
 
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="fillColor">Цвет заливки фигуры</param>
         protected Figure(Color fillColor) : base(fillColor) {
             Vertex = new List<PointF>();
         }

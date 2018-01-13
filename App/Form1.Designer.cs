@@ -37,14 +37,17 @@
             this.button1 = new System.Windows.Forms.Button();
             this.TmoSelector = new System.Windows.Forms.ComboBox();
             this.button2 = new System.Windows.Forms.Button();
+            this.FlipVertically = new System.Windows.Forms.Button();
+            this.FlipHorizontally = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // PictureBox
             // 
-            this.PictureBox.Location = new System.Drawing.Point(12, 67);
+            this.PictureBox.Location = new System.Drawing.Point(12, 70);
             this.PictureBox.Name = "PictureBox";
-            this.PictureBox.Size = new System.Drawing.Size(569, 400);
+            this.PictureBox.Size = new System.Drawing.Size(569, 397);
             this.PictureBox.TabIndex = 0;
             this.PictureBox.TabStop = false;
             this.PictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PictureBox_MouseDown);
@@ -52,7 +55,7 @@
             // 
             // Clear
             // 
-            this.Clear.Location = new System.Drawing.Point(506, 12);
+            this.Clear.Location = new System.Drawing.Point(506, 10);
             this.Clear.Name = "Clear";
             this.Clear.Size = new System.Drawing.Size(75, 23);
             this.Clear.TabIndex = 1;
@@ -122,7 +125,7 @@
             this.TmoSelector.Items.AddRange(new object[] {
             "Объединение",
             "Пересечение"});
-            this.TmoSelector.Location = new System.Drawing.Point(379, 40);
+            this.TmoSelector.Location = new System.Drawing.Point(379, 43);
             this.TmoSelector.Name = "TmoSelector";
             this.TmoSelector.Size = new System.Drawing.Size(121, 21);
             this.TmoSelector.TabIndex = 7;
@@ -130,7 +133,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(290, 37);
+            this.button2.Location = new System.Drawing.Point(290, 41);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(81, 23);
             this.button2.TabIndex = 8;
@@ -138,11 +141,43 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.TMO_Click);
             // 
+            // FlipVertically
+            // 
+            this.FlipVertically.Location = new System.Drawing.Point(101, 41);
+            this.FlipVertically.Name = "FlipVertically";
+            this.FlipVertically.Size = new System.Drawing.Size(75, 23);
+            this.FlipVertically.TabIndex = 9;
+            this.FlipVertically.Text = "Вертикали";
+            this.FlipVertically.UseVisualStyleBackColor = true;
+            this.FlipVertically.Click += new System.EventHandler(this.FlipVertically_Click);
+            // 
+            // FlipHorizontally
+            // 
+            this.FlipHorizontally.Location = new System.Drawing.Point(182, 41);
+            this.FlipHorizontally.Name = "FlipHorizontally";
+            this.FlipHorizontally.Size = new System.Drawing.Size(102, 23);
+            this.FlipHorizontally.TabIndex = 10;
+            this.FlipHorizontally.Text = "Горизонтали";
+            this.FlipHorizontally.UseVisualStyleBackColor = true;
+            this.FlipHorizontally.Click += new System.EventHandler(this.FlipHorizontally_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(25, 46);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(70, 13);
+            this.label1.TabIndex = 11;
+            this.label1.Text = "Отразить по";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(593, 479);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.FlipHorizontally);
+            this.Controls.Add(this.FlipVertically);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.TmoSelector);
             this.Controls.Add(this.button1);
@@ -153,9 +188,10 @@
             this.Controls.Add(this.Clear);
             this.Controls.Add(this.PictureBox);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "ГСК - Курсовая работа. III-АИТ-9, Середенко Д. Д.";
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -170,6 +206,9 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.ComboBox TmoSelector;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button FlipVertically;
+        private System.Windows.Forms.Button FlipHorizontally;
+        private System.Windows.Forms.Label label1;
     }
 }
 

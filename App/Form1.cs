@@ -17,9 +17,9 @@ namespace App {
         private readonly Bitmap _image;
         private readonly Graphics _g;
         private readonly List<Point> _vertexList = new List<Point>();
-        private readonly List<IDrawable> _figureList = new List<IDrawable>();
-        private Polygon _primaryPgn;
-        private Polygon _secondaryPgn;
+        private readonly List<Drawable> _figureList = new List<Drawable>();
+        private ITmoOperand _primaryPgn;
+        private ITmoOperand _secondaryPgn;
         private int _operation = 1;
         private Point _mouseStartPosition;
 
@@ -27,24 +27,43 @@ namespace App {
             InitializeComponent();
             _image = new Bitmap(PictureBox.Width, PictureBox.Height);
             _g = Graphics.FromImage(_image);
+
+            UiUtils.CanvasWidth = PictureBox.Width;
+            UiUtils.CanvasHeight = PictureBox.Height;
         }
 
-        // Ввод списка вершин и в конце - рисование
+        /// <summary>
+        /// Перерисовка всех объектов на полотне
+        /// </summary>
+        private void Redraw() {
+            _g.Clear(PictureBox.BackColor);
+            _figureList.ForEach(f => f.Draw(_g));
+            PictureBox.Image = _image;
+        }
+
+        /// <summary>
+        /// Ввод списка вершин и рисование
+        /// </summary>
+        /// <param name="e"></param>
         private void InputPgn(MouseEventArgs e) {
             var newP = new Point(e.X, e.Y);
             _vertexList.Add(newP);
-            var k = _vertexList.Count;
-            if (k > 1) _g.DrawLine(_drawPen, _vertexList[k - 2], _vertexList[k - 1]);
-            else _g.DrawRectangle(_drawPen, e.X, e.Y, 1, 1);
 
-            if (e.Button == MouseButtons.Right) // Конец ввода
-            {
-                _g.DrawLine(new Pen(Color.Blue), _vertexList[k - 1], _vertexList[0]);
+            var k = _vertexList.Count;
+            if (k > 1) {
+                _g.DrawLine(_drawPen, _vertexList[k - 2], _vertexList[k - 1]);
+            } else {
+                _g.DrawRectangle(_drawPen, e.X, e.Y, 1, 1);
+            }
+
+            // Конец ввода
+            if (e.Button == MouseButtons.Right) {
                 var pgn = new Polygon(_drawPen.Color);
+                _g.DrawLine(new Pen(Color.Blue), _vertexList[k - 1], _vertexList[0]);
                 _vertexList.ForEach(pgn.Add);
                 _vertexList.Clear();
-                pgn.Draw(_g);
                 _figureList.Add(pgn);
+                pgn.Draw(_g);
             }
         }
 
@@ -75,9 +94,24 @@ namespace App {
         private void TMO_Click(object sender, EventArgs e) {
             var tmo = TmoSelector.SelectedIndex + 1;
 
-            _g.Clear(PictureBox.BackColor);
-            PictureBox.Image = _image;
-            var a = Tmo.Exe(_primaryPgn, _secondaryPgn, tmo, PictureBox.Width, PictureBox.Height, _g);
+            if (_primaryPgn == null || _secondaryPgn == null) {
+                UiUtils.ShowInfo("Выберите две фигуры (ЛКМ и ПКМ)");
+                return;
+            }
+
+            _figureList.Remove(_primaryPgn as Drawable);
+            _figureList.Remove(_secondaryPgn as Drawable);
+            _figureList.Add(new TmoObject(Color.Red, tmo, _primaryPgn, _secondaryPgn));
+            _primaryPgn = null;
+            _secondaryPgn = null;
+
+            Redraw();
+        }
+
+        private void FlipVertically_Click(object sender, EventArgs e) {
+        }
+
+        private void FlipHorizontally_Click(object sender, EventArgs e) {
         }
 
         private void ColorSelector_SelectedIndexChanged(object sender, EventArgs e) {
@@ -102,44 +136,46 @@ namespace App {
         }
 
         private void PictureBox_MouseDown(object sender, MouseEventArgs e) {
-            var selectedPgn = _figureList.OfType<Polygon>().FirstOrDefault(p => p.ThisPgn(e.X, e.Y));
+            var selectedPgn = _figureList.OfType<ITmoOperand>().FirstOrDefault(p => p.ContainsPoint(e.X, e.Y));
             if (selectedPgn != null) {
-                if (e.Button == MouseButtons.Left) {
-                    if (_primaryPgn != null) {
-                        _primaryPgn.BorderColor = null;
-                    }
+                switch (e.Button) {
+                    case MouseButtons.Left:
+                        if (_primaryPgn != null) {
+                            _primaryPgn.FillColor = Color.Black;
+                        }
 
-                    if (selectedPgn == _secondaryPgn && _primaryPgn != null) {
-                        _secondaryPgn = _primaryPgn;
-                        _secondaryPgn.BorderColor = SecondaryColor;
-                    }
+                        if (selectedPgn == _secondaryPgn && _primaryPgn != null) {
+                            _secondaryPgn = _primaryPgn;
+                            _secondaryPgn.FillColor = SecondaryColor;
+                        }
 
-                    _primaryPgn = selectedPgn;
-                    _primaryPgn.BorderColor = PrimaryColor;
-                    Redraw();
-                } else if (e.Button == MouseButtons.Right) {
-                    if (_secondaryPgn != null) {
-                        _secondaryPgn.BorderColor = null;
-                    }
+                        _primaryPgn = selectedPgn;
+                        _primaryPgn.FillColor = PrimaryColor;
+                        Redraw();
+                        break;
+                    case MouseButtons.Right:
+                        if (_secondaryPgn != null) {
+                            _secondaryPgn.FillColor = Color.Black;
+                        }
 
-                    if (selectedPgn == _primaryPgn && _secondaryPgn != null) {
-                        _primaryPgn = _secondaryPgn;
-                        _primaryPgn.BorderColor = PrimaryColor;
-                    }
+                        if (selectedPgn == _primaryPgn && _secondaryPgn != null) {
+                            _primaryPgn = _secondaryPgn;
+                            _primaryPgn.FillColor = PrimaryColor;
+                        }
 
-                    _secondaryPgn = selectedPgn;
-                    _secondaryPgn.BorderColor = SecondaryColor;
-                    Redraw();
+                        _secondaryPgn = selectedPgn;
+                        _secondaryPgn.FillColor = SecondaryColor;
+                        Redraw();
+                        break;
                 }
             }
 
             _mouseStartPosition = e.Location;
             switch (_operation) {
                 case 1: // ввод вершин и рисование
-                {
                     InputPgn(e);
                     if (e.Button == MouseButtons.Right) _operation = 0;
-                }
+
                     break;
                 case 2: // выделение многоугольника
                 case 3: // вращение
@@ -151,7 +187,6 @@ namespace App {
                     break;
             }
 
-            // копирование из _image в PictureBox.Image
             PictureBox.Image = _image;
         }
 
@@ -164,8 +199,7 @@ namespace App {
                         _mouseStartPosition = e.Location;
                         break;
                     case 3:
-                        _primaryPgn.Rotate(_mouseStartPosition,
-                            (e.X > _mouseStartPosition.X ? 1 : -1) * (Math.PI / 180.0));
+                        _primaryPgn.Rotate(_mouseStartPosition, (e.X > _mouseStartPosition.X ? 1 : -1) * (Math.PI / 180.0));
                         Redraw();
                         break;
                     case 4:
@@ -174,12 +208,6 @@ namespace App {
                         break;
                 }
             }
-        }
-
-        private void Redraw() {
-            _g.Clear(PictureBox.BackColor);
-            _figureList.ForEach(f => f.Draw(_g));
-            PictureBox.Image = _image;
         }
 
     }
