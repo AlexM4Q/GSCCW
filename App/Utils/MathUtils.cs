@@ -7,6 +7,20 @@ namespace App.Utils {
     public static class MathUtils {
 
         /// <summary>
+        /// Подсчет факториала
+        /// </summary>
+        /// <param name="value">Число</param>
+        /// <returns>Факториал</returns>
+        public static long Factorial(int value) {
+            long result = 1;
+            for (var i = value; i > 1; i--) {
+                result *= i;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Определение абсциссы пересечения горизонтальной прямой Y
         /// и прямой образованной точками P1 и P2
         /// </summary>

@@ -23,13 +23,18 @@ namespace App.Figures {
         /// </summary>
         /// <param name="g">Комопнент отрисовки</param>
         public override void Draw(Graphics g) {
-            var pgVertex = new Point[Vertex.Count];
-            for (var i = 0; i < Vertex.Count; i++) {
-                pgVertex[i].X = (int) Math.Round(Vertex[i].X);
-                pgVertex[i].Y = (int) Math.Round(Vertex[i].Y);
+            var leftSide = new List<int>();
+            var rightSide = new List<int>();
+            var ys = Vertex.Select(p => (int) p.Y).ToList();
+            var yMax = ys.Max();
+            var yMin = ys.Min();
+            var pen = new Pen(FillColor);
+            for (var y = yMin; y < yMax; y++) {
+                Bound(leftSide, rightSide, y);
+                for (var i = 0; i < leftSide.Count; i++) {
+                    g.DrawLine(pen, leftSide[i], y, rightSide[i], y);
+                }
             }
-
-            g.FillPolygon(new SolidBrush(FillColor), pgVertex);
         }
 
         /// <summary>

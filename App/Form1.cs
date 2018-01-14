@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Xml.Serialization;
 using App.Figures;
 using App.Utils;
 
@@ -24,6 +23,7 @@ namespace App {
         private ITmoOperand _primaryOperand;
         private ITmoOperand _secondaryOperand;
 
+        private BezierCurve _bezierCurveCache;
         private RegularPolygon _regularPolygonCache;
 
         private int _operation = 1;
@@ -48,6 +48,16 @@ namespace App {
         }
 
         private void InputBeqierCurve(Point newPoint, bool isEnd) {
+            if (_bezierCurveCache == null) {
+                _bezierCurveCache = new BezierCurve(Color.Black);
+                _figureList.Add(_bezierCurveCache);
+            }
+
+            if (isEnd) {
+                _bezierCurveCache = null;
+            } else {
+                _bezierCurveCache.Add(newPoint);
+            }
         }
 
         /// <summary>
@@ -93,6 +103,10 @@ namespace App {
             _g.Clear(PictureBox.BackColor);
             _figureList.ForEach(p => p.Clear());
             _figureList.Clear();
+            _bezierCurveCache = null;
+            _regularPolygonCache = null;
+            _primaryOperand = null;
+            _secondaryOperand = null;
             _operation = 1;
             PictureBox.Image = _image;
         }
@@ -179,6 +193,7 @@ namespace App {
                     switch (FigureSelector.SelectedIndex) {
                         case 0:
                             InputBeqierCurve(e.Location, isEnd);
+                            Redraw();
                             break;
                         case 1:
                             InputPolypog(e.Location, isEnd);
@@ -189,7 +204,7 @@ namespace App {
                             break;
                     }
 
-                    if (isEnd) _operation = 0;
+                    if (isEnd) _operation = 2;
 
                     break;
                 case 2: // перемещение
@@ -244,6 +259,18 @@ namespace App {
                     _secondaryOperand.FillColor = SecondaryColor;
                     Redraw();
                     break;
+            }
+
+            if (_secondaryOperand != null) {
+                _figureList.Remove(_secondaryOperand as Drawable);
+                _figureList.Add(_secondaryOperand as Drawable);
+                Redraw();
+            }
+
+            if (_primaryOperand != null) {
+                _figureList.Remove(_primaryOperand as Drawable);
+                _figureList.Add(_primaryOperand as Drawable);
+                Redraw();
             }
         }
 
