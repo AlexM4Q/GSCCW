@@ -41,14 +41,15 @@
             this.FlipHorizontally = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.FigureSelector = new System.Windows.Forms.ComboBox();
+            this.DeleteFigure = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // PictureBox
             // 
-            this.PictureBox.Location = new System.Drawing.Point(12, 70);
+            this.PictureBox.Location = new System.Drawing.Point(12, 100);
             this.PictureBox.Name = "PictureBox";
-            this.PictureBox.Size = new System.Drawing.Size(569, 397);
+            this.PictureBox.Size = new System.Drawing.Size(569, 470);
             this.PictureBox.TabIndex = 0;
             this.PictureBox.TabStop = false;
             this.PictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PictureBox_MouseDown);
@@ -125,7 +126,10 @@
             this.TmoSelector.FormattingEnabled = true;
             this.TmoSelector.Items.AddRange(new object[] {
             "Объединение",
-            "Пересечение"});
+            "Пересечение",
+            "Симметрическая разность",
+            "Разность А - В",
+            "Разность В - А"});
             this.TmoSelector.Location = new System.Drawing.Point(379, 43);
             this.TmoSelector.Name = "TmoSelector";
             this.TmoSelector.Size = new System.Drawing.Size(121, 21);
@@ -184,11 +188,22 @@
             this.FigureSelector.TabIndex = 12;
             this.FigureSelector.Text = "Фигура";
             // 
+            // DeleteFigure
+            // 
+            this.DeleteFigure.Location = new System.Drawing.Point(505, 71);
+            this.DeleteFigure.Name = "DeleteFigure";
+            this.DeleteFigure.Size = new System.Drawing.Size(75, 23);
+            this.DeleteFigure.TabIndex = 13;
+            this.DeleteFigure.Text = "Удалить";
+            this.DeleteFigure.UseVisualStyleBackColor = true;
+            this.DeleteFigure.Click += new System.EventHandler(this.DeleteFigure_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(593, 479);
+            this.ClientSize = new System.Drawing.Size(593, 582);
+            this.Controls.Add(this.DeleteFigure);
             this.Controls.Add(this.FigureSelector);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.FlipHorizontally);
@@ -225,6 +240,7 @@
         private System.Windows.Forms.Button FlipHorizontally;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox FigureSelector;
+        private System.Windows.Forms.Button DeleteFigure;
     }
 }
 

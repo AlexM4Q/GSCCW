@@ -23,10 +23,18 @@ namespace App {
         private ITmoOperand _primaryOperand;
         private ITmoOperand _secondaryOperand;
 
-        private BezierCurve _bezierCurveCache;
+        private BezierCurve _bezierCurveCache; //временная переменная создания кривой Безье
         private RegularPolygon _regularPolygonCache;
 
+        /// <summary>
+        /// 0 - ничего
+        /// 1 - создание фигуры
+        /// 2 - перемещение
+        /// 3 - вращение
+        /// 4 - масшабирование
+        /// </summary>
         private int _operation = 1;
+
         private Point _mouseStartPosition;
 
         public Form1() {
@@ -47,6 +55,11 @@ namespace App {
             PictureBox.Image = _image;
         }
 
+        /// <summary>
+        /// Воод кривой Безье
+        /// </summary>
+        /// <param name="newPoint"></param>
+        /// <param name="isEnd"></param>
         private void InputBeqierCurve(Point newPoint, bool isEnd) {
             if (_bezierCurveCache == null) {
                 _bezierCurveCache = new BezierCurve(Color.Black);
@@ -86,6 +99,11 @@ namespace App {
             }
         }
 
+        /// <summary>
+        /// Ввод правильного полигона
+        /// </summary>
+        /// <param name="newPoint"></param>
+        /// <param name="isEnd"></param>
         private void InputRegularPolypog(Point newPoint, bool isEnd) {
             if (_regularPolygonCache == null) {
                 _regularPolygonCache = new RegularPolygon(Color.Black, newPoint);
@@ -109,6 +127,16 @@ namespace App {
             _secondaryOperand = null;
             _operation = 1;
             PictureBox.Image = _image;
+        }
+
+        private void DeleteFigure_Click(object sender, EventArgs e) {
+            if (_primaryOperand == null) {
+                UiUtils.ShowInfo("Выберите фигуру (ЛКМ)");
+                return;
+            }
+
+            _figureList.Remove(_primaryOperand as Drawable);
+            Redraw();
         }
 
         private void Draw_Click(object sender, EventArgs e) {
@@ -227,6 +255,7 @@ namespace App {
         /// </summary>
         /// <param name="e">Данные о событии мыши</param>
         private void RecalculateOperands(MouseEventArgs e) {
+            // выбранная фигура(выделенная)
             var selectedPgn = _figureList.OfType<ITmoOperand>().FirstOrDefault(p => p.ContainsPoint(e.X, e.Y));
             if (selectedPgn == null) return;
 
