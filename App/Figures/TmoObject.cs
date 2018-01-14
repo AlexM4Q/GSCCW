@@ -17,6 +17,10 @@ namespace App.Figures {
 
         private List<Point> _rightSide;
 
+        private bool _flippedVertically;
+
+        private bool _flippedHorizontally;
+
         public TmoObject(Color fillColor, int tmo, ITmoOperand operand1, ITmoOperand operand2) : base(fillColor) {
             _tmo = tmo;
             _operand1 = operand1;
@@ -29,8 +33,27 @@ namespace App.Figures {
                 throw new ArgumentException("Количество кординат правой и левой границы не совпадают");
             }
 
+            List<PointF>[] newSides = null;
+            var drawLeftSide = _leftSide;
+            var drawRightSide = _rightSide;
+
+            if (_flippedVertically) {
+                newSides = MathUtils.FlipVertically(_leftSide.ToPointFs(), _rightSide.ToPointFs());
+            }
+
+            if (_flippedHorizontally) {
+                newSides = newSides == null
+                    ? MathUtils.FlipHorizontally(_leftSide.ToPointFs(), _rightSide.ToPointFs())
+                    : MathUtils.FlipHorizontally(newSides);
+            }
+
+            if (newSides != null) {
+                drawLeftSide = newSides[0].ToPoints();
+                drawRightSide = newSides[1].ToPoints();
+            }
+
             for (var i = 0; i < _leftSide.Count; i++) {
-                g.DrawLine(new Pen(FillColor), _leftSide[i], _rightSide[i]);
+                g.DrawLine(new Pen(FillColor), drawLeftSide[i], drawRightSide[i]);
             }
         }
 
@@ -65,25 +88,50 @@ namespace App.Figures {
             RecalculateSides();
         }
 
-        private void RecalculateSides() {
-            switch (_operand1) {
-                case Polygon polygon1:
-                    switch (_operand2) {
-                        case Polygon polygon2:
-                            var tuple = Tmo.Exe(polygon1, polygon2, _tmo);
-                            _leftSide = tuple.Item1;
-                            _rightSide = tuple.Item2;
-                            break;
-                        case TmoObject tmoObject2:
-                            throw new NotImplementedException();
-                            break;
-                    }
+        public void FlipVertically() {
+            _flippedVertically = !_flippedVertically;
+        }
 
-                    break;
-                case TmoObject tmoObject1:
-                    throw new NotImplementedException();
-                    break;
+        public void FlipHorizontally() {
+            _flippedHorizontally = !_flippedHorizontally;
+        }
+
+        private void RecalculateSides() {
+            if (_operand1 is TmoObject tmoObject1) {
+                tmoObject1.RecalculateSides();
             }
+
+            if (_operand2 is TmoObject tmoObject2) {
+                tmoObject2.RecalculateSides();
+            }
+
+            var tuple = Tmo.Exe(_operand1, _operand2, _tmo);
+            _leftSide = tuple.Item1;
+            _rightSide = tuple.Item2;
+        }
+
+        public void Bound(List<int> xl, List<int> xr, int y) {
+            xl.Clear();
+            xr.Clear();
+
+            foreach (var point in _leftSide) {
+                if (point.Y == y) {
+                    xl.Add(point.X);
+                }
+            }
+
+            foreach (var point in _rightSide) {
+                if (point.Y == y) {
+                    xr.Add(point.X);
+                }
+            }
+
+            if (xl.Count != xr.Count) {
+                throw new InvalidOperationException($"Размеры правой и левой границе не совпадают. xrr: {xl.Count}, xrl: {xr.Count}");
+            }
+
+            xl.Sort();
+            xr.Sort();
         }
 
     }

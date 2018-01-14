@@ -40,6 +40,16 @@ namespace App.Figures {
         /// <param name="f">Множитель масштабирования</param>
         void Scale(PointF center, double f);
 
+        /// <summary>
+        /// Отражение по вертикали
+        /// </summary>
+        void FlipVertically();
+
+        /// <summary>
+        /// Отражение по горизонтали
+        /// </summary>
+        void FlipHorizontally();
+
     }
 
 }

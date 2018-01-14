@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using App.Utils;
 
 namespace App.Figures {
 
@@ -11,17 +12,10 @@ namespace App.Figures {
     public class Polygon : Figure, ITmoOperand {
 
         /// <summary>
-        /// Цвет контура фигуры
-        /// </summary>
-        public Color? BorderColor { get; set; }
-
-        /// <summary>
         /// Конструктор
         /// </summary>
         /// <param name="fillColor">Цвет заливки фигуры</param>
-        /// <param name="borderColor">Цвет контура фигуры</param>
-        public Polygon(Color fillColor, Color? borderColor = null) : base(fillColor) {
-            BorderColor = borderColor;
+        public Polygon(Color fillColor) : base(fillColor) {
         }
 
         /// <summary>
@@ -36,10 +30,6 @@ namespace App.Figures {
             }
 
             g.FillPolygon(new SolidBrush(FillColor), pgVertex);
-
-            if (BorderColor.HasValue) {
-                g.DrawPolygon(new Pen(BorderColor.Value, 3), pgVertex);
-            }
         }
 
         /// <summary>
@@ -107,6 +97,47 @@ namespace App.Figures {
             }
 
             return false;
+        }
+
+        public void FlipVertically() {
+            Vertex = MathUtils.FlipVertically(Vertex)[0];
+        }
+
+        public void FlipHorizontally() {
+            Vertex = MathUtils.FlipHorizontally(Vertex)[0];
+        }
+
+        /// <summary>
+        /// Поиск левых и правых границ фигуры
+        /// </summary>
+        /// <param name="xl">Контейнер левых границ</param>
+        /// <param name="xr">Контейнер правых границ</param>
+        /// <param name="y">Уровень горизонтали Y</param>
+        public void Bound(List<int> xl, List<int> xr, int y) {
+            xl.Clear();
+            xr.Clear();
+
+            var xb = new List<int>();
+            for (var i = 0; i < Vertex.Count; i++) {
+                var k = i == Vertex.Count - 1 ? 0 : i + 1;
+
+                var currPoint = Vertex[i];
+                var nextPoint = Vertex[k];
+
+                if (currPoint.Y < y && nextPoint.Y >= y || currPoint.Y >= y && nextPoint.Y < y) {
+                    xb.Add((int) MathUtils.Cross(currPoint, nextPoint, y));
+                }
+            }
+
+            xb.Sort();
+            for (var i = 0; i < xb.Count; i += 2) {
+                xl.Add(xb[i]);
+                xr.Add(xb[i + 1]);
+            }
+
+            if (xl.Count != xr.Count) {
+                throw new InvalidOperationException($"Размеры правой и левой границе не совпадают. xrr: {xl.Count}, xrl: {xr.Count}");
+            }
         }
 
     }

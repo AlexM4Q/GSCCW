@@ -13,7 +13,7 @@ namespace App.Figures {
         /// <summary>
         /// Набор точек, описывающих замкнутый контур фигуры
         /// </summary>
-        public List<PointF> Vertex { get; }
+        public List<PointF> Vertex { get; protected set; }
 
         /// <summary>
         /// Конструктор
@@ -34,8 +34,10 @@ namespace App.Figures {
         /// Добавление новой вершины к фигуре
         /// </summary>
         /// <param name="newVertex"></param>
-        public virtual void Add(Point newVertex) {
-            Vertex.Add(newVertex);
+        public virtual void Add(Point? newVertex = null) {
+            if (newVertex.HasValue) {
+                Vertex.Add(newVertex.Value);
+            }
         }
 
         /// <summary>

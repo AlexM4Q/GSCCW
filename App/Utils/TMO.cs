@@ -13,13 +13,13 @@ namespace App.Utils {
         /// <summary>
         /// Выполнение ТМО
         /// </summary>
-        /// <param name="pgnA">Полигон A</param>
-        /// <param name="pgnB">Полигон B</param>
+        /// <param name="operandA">Полигон A</param>
+        /// <param name="operandB">Полигон B</param>
         /// <param name="tmo">Индекс ТМО</param>
         /// <param name="width">Ширина полотна</param>
         /// <param name="height">Высота полотна</param>
         /// <returns>Результат ТМО</returns>
-        public static Tuple<List<Point>, List<Point>> Exe(Polygon pgnA, Polygon pgnB, int tmo) {
+        public static Tuple<List<Point>, List<Point>> Exe(ITmoOperand operandA, ITmoOperand operandB, int tmo) {
             var setQ = CreateTmoQ(tmo);
 
             var xal = new List<int>();
@@ -31,8 +31,8 @@ namespace App.Utils {
             var lr = new List<Point>();
 
             for (var y = 0; y < UiUtils.CanvasHeight; y++) {
-                Bound(pgnA.Vertex, xal, xar, y);
-                Bound(pgnB.Vertex, xbl, xbr, y);
+                operandA.Bound(xal, xar, y);
+                operandB.Bound(xbl, xbr, y);
 
                 var totalM = xal.Count + xar.Count + xbl.Count + xbr.Count;
                 if (totalM == 0) continue;
@@ -116,63 +116,6 @@ namespace App.Utils {
             }
 
             return new Tuple<List<Point>, List<Point>>(ll, lr);
-        }
-
-        /// <summary>
-        /// Поиск левых и правых границ фигуры
-        /// </summary>
-        /// <param name="points"></param>
-        /// <param name="xl"></param>
-        /// <param name="xr"></param>
-        /// <param name="y"></param>
-        private static void Bound(IList<PointF> points, List<int> xl, List<int> xr, int y) {
-            xl.Clear();
-            xr.Clear();
-
-            var xb = new List<int>();
-            for (var i = 0; i < points.Count; i++) {
-                var k = i == points.Count - 1 ? 0 : i + 1;
-
-                var currPoint = points[i];
-                var nextPoint = points[k];
-
-                if (currPoint.Y < y && nextPoint.Y >= y || currPoint.Y >= y && nextPoint.Y < y) {
-                    xb.Add((int) Cross(currPoint, nextPoint, y));
-                }
-            }
-
-            xb.Sort();
-            for (var i = 0; i < xb.Count; i += 2) {
-                xl.Add(xb[i]);
-                xr.Add(xb[i + 1]);
-            }
-        }
-
-        /// <summary>
-        /// Определение абсциссы пересечения горизонтальной прямой Y
-        /// и прямой образованной точками P1 и P2
-        /// </summary>
-        /// <param name="p1"></param>
-        /// <param name="p2"></param>
-        /// <param name="y"></param>
-        /// <returns>абсцисса</returns>
-        private static float Cross(PointF p1, PointF p2, float y) {
-            if (p1.X == p2.X) {
-                return p1.X;
-            }
-
-            if (p1.Y == y) {
-                return p1.X;
-            }
-
-            if (p2.Y == y) {
-                return p2.X;
-            }
-
-            var k = (p1.Y - p2.Y) / (p1.X - p2.X);
-            var b = p1.Y - k * p1.X;
-
-            return (y - b) / k;
         }
 
         private static int[] CreateTmoQ(int tmo) {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using App.Figures;
 using App.Utils;
 
@@ -16,10 +17,15 @@ namespace App {
         private readonly Pen _drawPen = new Pen(Color.Black, 1);
         private readonly Bitmap _image;
         private readonly Graphics _g;
+
         private readonly List<Point> _vertexList = new List<Point>();
         private readonly List<Drawable> _figureList = new List<Drawable>();
-        private ITmoOperand _primaryPgn;
-        private ITmoOperand _secondaryPgn;
+
+        private ITmoOperand _primaryOperand;
+        private ITmoOperand _secondaryOperand;
+
+        private RegularPolygon _regularPolygonCache;
+
         private int _operation = 1;
         private Point _mouseStartPosition;
 
@@ -41,29 +47,45 @@ namespace App {
             PictureBox.Image = _image;
         }
 
+        private void InputBeqierCurve(Point newPoint, bool isEnd) {
+        }
+
         /// <summary>
         /// Ввод списка вершин и рисование
         /// </summary>
-        /// <param name="e"></param>
-        private void InputPgn(MouseEventArgs e) {
-            var newP = new Point(e.X, e.Y);
-            _vertexList.Add(newP);
+        /// <param name="newPoint"></param>
+        /// <param name="isEnd"></param>
+        private void InputPolypog(Point newPoint, bool isEnd) {
+            _vertexList.Add(newPoint);
 
             var k = _vertexList.Count;
             if (k > 1) {
                 _g.DrawLine(_drawPen, _vertexList[k - 2], _vertexList[k - 1]);
             } else {
-                _g.DrawRectangle(_drawPen, e.X, e.Y, 1, 1);
+                _g.DrawRectangle(_drawPen, newPoint.X, newPoint.Y, 1, 1);
             }
 
             // Конец ввода
-            if (e.Button == MouseButtons.Right) {
+            if (isEnd) {
                 var pgn = new Polygon(_drawPen.Color);
                 _g.DrawLine(new Pen(Color.Blue), _vertexList[k - 1], _vertexList[0]);
-                _vertexList.ForEach(pgn.Add);
+                _vertexList.ForEach(p => pgn.Add(p));
                 _vertexList.Clear();
                 _figureList.Add(pgn);
                 pgn.Draw(_g);
+            }
+        }
+
+        private void InputRegularPolypog(Point newPoint, bool isEnd) {
+            if (_regularPolygonCache == null) {
+                _regularPolygonCache = new RegularPolygon(Color.Black, newPoint);
+                _figureList.Add(_regularPolygonCache);
+            } else if (!isEnd) {
+                _regularPolygonCache.Add();
+            }
+
+            if (isEnd) {
+                _regularPolygonCache = null;
             }
         }
 
@@ -94,24 +116,38 @@ namespace App {
         private void TMO_Click(object sender, EventArgs e) {
             var tmo = TmoSelector.SelectedIndex + 1;
 
-            if (_primaryPgn == null || _secondaryPgn == null) {
+            if (_primaryOperand == null || _secondaryOperand == null) {
                 UiUtils.ShowInfo("Выберите две фигуры (ЛКМ и ПКМ)");
                 return;
             }
 
-            _figureList.Remove(_primaryPgn as Drawable);
-            _figureList.Remove(_secondaryPgn as Drawable);
-            _figureList.Add(new TmoObject(Color.Red, tmo, _primaryPgn, _secondaryPgn));
-            _primaryPgn = null;
-            _secondaryPgn = null;
+            _figureList.Remove(_primaryOperand as Drawable);
+            _figureList.Remove(_secondaryOperand as Drawable);
+            _figureList.Add(new TmoObject(Color.Red, tmo, _primaryOperand, _secondaryOperand));
+            _primaryOperand = null;
+            _secondaryOperand = null;
 
             Redraw();
         }
 
         private void FlipVertically_Click(object sender, EventArgs e) {
+            if (_primaryOperand == null) {
+                UiUtils.ShowInfo("Выберите фигуру (ЛКМ)");
+                return;
+            }
+
+            _primaryOperand.FlipVertically();
+            Redraw();
         }
 
         private void FlipHorizontally_Click(object sender, EventArgs e) {
+            if (_primaryOperand == null) {
+                UiUtils.ShowInfo("Выберите фигуру (ЛКМ)");
+                return;
+            }
+
+            _primaryOperand.FlipHorizontally();
+            Redraw();
         }
 
         private void ColorSelector_SelectedIndexChanged(object sender, EventArgs e) {
@@ -136,51 +172,32 @@ namespace App {
         }
 
         private void PictureBox_MouseDown(object sender, MouseEventArgs e) {
-            var selectedPgn = _figureList.OfType<ITmoOperand>().FirstOrDefault(p => p.ContainsPoint(e.X, e.Y));
-            if (selectedPgn != null) {
-                switch (e.Button) {
-                    case MouseButtons.Left:
-                        if (_primaryPgn != null) {
-                            _primaryPgn.FillColor = Color.Black;
-                        }
-
-                        if (selectedPgn == _secondaryPgn && _primaryPgn != null) {
-                            _secondaryPgn = _primaryPgn;
-                            _secondaryPgn.FillColor = SecondaryColor;
-                        }
-
-                        _primaryPgn = selectedPgn;
-                        _primaryPgn.FillColor = PrimaryColor;
-                        Redraw();
-                        break;
-                    case MouseButtons.Right:
-                        if (_secondaryPgn != null) {
-                            _secondaryPgn.FillColor = Color.Black;
-                        }
-
-                        if (selectedPgn == _primaryPgn && _secondaryPgn != null) {
-                            _primaryPgn = _secondaryPgn;
-                            _primaryPgn.FillColor = PrimaryColor;
-                        }
-
-                        _secondaryPgn = selectedPgn;
-                        _secondaryPgn.FillColor = SecondaryColor;
-                        Redraw();
-                        break;
-                }
-            }
-
             _mouseStartPosition = e.Location;
             switch (_operation) {
                 case 1: // ввод вершин и рисование
-                    InputPgn(e);
-                    if (e.Button == MouseButtons.Right) _operation = 0;
+                    var isEnd = e.Button == MouseButtons.Right;
+                    switch (FigureSelector.SelectedIndex) {
+                        case 0:
+                            InputBeqierCurve(e.Location, isEnd);
+                            break;
+                        case 1:
+                            InputPolypog(e.Location, isEnd);
+                            break;
+                        case 2:
+                            InputRegularPolypog(e.Location, isEnd);
+                            Redraw();
+                            break;
+                    }
+
+                    if (isEnd) _operation = 0;
 
                     break;
-                case 2: // выделение многоугольника
+                case 2: // перемещение
                 case 3: // вращение
                 case 4: // масштабирование
-                    if (_primaryPgn != null) {
+                    RecalculateOperands(e);
+
+                    if (_primaryOperand != null) {
                         _g.DrawEllipse(new Pen(Color.Blue), e.X - 2, e.Y - 2, 5, 5);
                     }
 
@@ -190,20 +207,72 @@ namespace App {
             PictureBox.Image = _image;
         }
 
+        /// <summary>
+        /// Определяет первичный и вторичный операнды
+        /// </summary>
+        /// <param name="e">Данные о событии мыши</param>
+        private void RecalculateOperands(MouseEventArgs e) {
+            var selectedPgn = _figureList.OfType<ITmoOperand>().FirstOrDefault(p => p.ContainsPoint(e.X, e.Y));
+            if (selectedPgn == null) return;
+
+            switch (e.Button) {
+                case MouseButtons.Left:
+                    if (_primaryOperand != null) {
+                        _primaryOperand.FillColor = Color.Black;
+                    }
+
+                    if (selectedPgn == _secondaryOperand && _primaryOperand != null) {
+                        _secondaryOperand = _primaryOperand;
+                        _secondaryOperand.FillColor = SecondaryColor;
+                    }
+
+                    _primaryOperand = selectedPgn;
+                    _primaryOperand.FillColor = PrimaryColor;
+                    Redraw();
+                    break;
+                case MouseButtons.Right:
+                    if (_secondaryOperand != null) {
+                        _secondaryOperand.FillColor = Color.Black;
+                    }
+
+                    if (selectedPgn == _primaryOperand && _secondaryOperand != null) {
+                        _primaryOperand = _secondaryOperand;
+                        _primaryOperand.FillColor = PrimaryColor;
+                    }
+
+                    _secondaryOperand = selectedPgn;
+                    _secondaryOperand.FillColor = SecondaryColor;
+                    Redraw();
+                    break;
+            }
+        }
+
         private void PictureBox_MouseMove(object sender, MouseEventArgs e) {
-            if (_primaryPgn != null && e.Button == MouseButtons.Left) {
+            if (_operation == 1) {
+                if (_regularPolygonCache != null) {
+                    var center = _regularPolygonCache.Center;
+                    var x = center.X - e.X;
+                    var y = center.Y - e.Y;
+                    _regularPolygonCache.Radius = (float) Math.Sqrt(x * x + y * y);
+                    Redraw();
+                }
+
+                return;
+            }
+
+            if (_primaryOperand != null && e.Button == MouseButtons.Left) {
                 switch (_operation) {
                     case 2:
-                        _primaryPgn.Move(e.X - _mouseStartPosition.X, e.Y - _mouseStartPosition.Y);
+                        _primaryOperand.Move(e.X - _mouseStartPosition.X, e.Y - _mouseStartPosition.Y);
                         Redraw();
                         _mouseStartPosition = e.Location;
                         break;
                     case 3:
-                        _primaryPgn.Rotate(_mouseStartPosition, (e.X > _mouseStartPosition.X ? 1 : -1) * (Math.PI / 180.0));
+                        _primaryOperand.Rotate(_mouseStartPosition, (e.X > _mouseStartPosition.X ? 1 : -1) * (Math.PI / 180.0));
                         Redraw();
                         break;
                     case 4:
-                        _primaryPgn.Scale(_mouseStartPosition, e.X > _mouseStartPosition.X ? 1.01 : 0.99);
+                        _primaryOperand.Scale(_mouseStartPosition, e.X > _mouseStartPosition.X ? 1.01 : 0.99);
                         Redraw();
                         break;
                 }

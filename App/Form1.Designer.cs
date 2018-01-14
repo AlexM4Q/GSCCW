@@ -40,6 +40,7 @@
             this.FlipVertically = new System.Windows.Forms.Button();
             this.FlipHorizontally = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
+            this.FigureSelector = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -55,9 +56,9 @@
             // 
             // Clear
             // 
-            this.Clear.Location = new System.Drawing.Point(506, 10);
+            this.Clear.Location = new System.Drawing.Point(506, 43);
             this.Clear.Name = "Clear";
-            this.Clear.Size = new System.Drawing.Size(75, 23);
+            this.Clear.Size = new System.Drawing.Size(75, 21);
             this.Clear.TabIndex = 1;
             this.Clear.Text = "Очистить";
             this.Clear.UseVisualStyleBackColor = true;
@@ -82,9 +83,9 @@
             "Зеленый",
             "Синий",
             "Белый"});
-            this.ColorSelector.Location = new System.Drawing.Point(379, 12);
+            this.ColorSelector.Location = new System.Drawing.Point(506, 12);
             this.ColorSelector.Name = "ColorSelector";
-            this.ColorSelector.Size = new System.Drawing.Size(121, 21);
+            this.ColorSelector.Size = new System.Drawing.Size(75, 21);
             this.ColorSelector.TabIndex = 3;
             this.ColorSelector.Text = "Цвет";
             this.ColorSelector.SelectedIndexChanged += new System.EventHandler(this.ColorSelector_SelectedIndexChanged);
@@ -170,11 +171,25 @@
             this.label1.TabIndex = 11;
             this.label1.Text = "Отразить по";
             // 
+            // FigureSelector
+            // 
+            this.FigureSelector.FormattingEnabled = true;
+            this.FigureSelector.Items.AddRange(new object[] {
+            "Кривая Безье",
+            "Полигон",
+            "Правильный полигон"});
+            this.FigureSelector.Location = new System.Drawing.Point(379, 12);
+            this.FigureSelector.Name = "FigureSelector";
+            this.FigureSelector.Size = new System.Drawing.Size(121, 21);
+            this.FigureSelector.TabIndex = 12;
+            this.FigureSelector.Text = "Фигура";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(593, 479);
+            this.Controls.Add(this.FigureSelector);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.FlipHorizontally);
             this.Controls.Add(this.FlipVertically);
@@ -209,6 +224,7 @@
         private System.Windows.Forms.Button FlipVertically;
         private System.Windows.Forms.Button FlipHorizontally;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox FigureSelector;
     }
 }
 
